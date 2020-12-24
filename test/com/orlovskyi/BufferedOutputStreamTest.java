@@ -107,11 +107,14 @@ class BufferedOutputStreamTest {
         assertEquals(21, bytesBAOS[4]);
         assertEquals(44, bytesBAOS[5]);
 
-//        bufferedOutputStreamWithoutFile.write(byteTestArr, 4, 4);
-//        bufferedOutputStreamWithoutFile.flush();
-//        assertEquals(8, bytesBAOS.length);
-//        assertEquals(22, bytesBAOS[6]);
-//        assertEquals(37, bytesBAOS[7]);
+        bufferedOutputStreamWithoutFile.write(byteTestArr, 4, 4);
+        bufferedOutputStreamWithoutFile.flush();
+        bytesBAOS = byteArrayOutputStreamWithoutFile.toByteArray();
+        assertEquals(10, bytesBAOS.length);
+        assertEquals(21, bytesBAOS[6]);
+        assertEquals(44, bytesBAOS[7]);
+        assertEquals(22, bytesBAOS[8]);
+        assertEquals(37, bytesBAOS[9]);
 
     }
 
