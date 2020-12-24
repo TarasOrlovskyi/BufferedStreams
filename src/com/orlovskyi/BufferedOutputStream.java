@@ -6,25 +6,25 @@ import java.io.OutputStream;
 public class BufferedOutputStream extends OutputStream {
     private OutputStream outputStream;
     private static final int CAPACITY = 8 * 1024;
-    private byte[] arrayForOutputByByte;
+    private byte[] arrayForOutput;
     int index;
 
     public BufferedOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
-        arrayForOutputByByte = new byte[CAPACITY];
+        arrayForOutput = new byte[CAPACITY];
     }
 
     public BufferedOutputStream(OutputStream outputStream, int capacity) {
         this.outputStream = outputStream;
-        arrayForOutputByByte = new byte[capacity];
+        arrayForOutput = new byte[capacity];
     }
 
     @Override
     public void write(int i) throws IOException {
-        arrayForOutputByByte[index++] = (byte) i;
+        arrayForOutput[index++] = (byte) i;
 
-        if (index == arrayForOutputByByte.length) {
-            outputStream.write(arrayForOutputByByte);
+        if (index == arrayForOutput.length) {
+            outputStream.write(arrayForOutput);
             index = 0;
         }
     }
@@ -36,27 +36,32 @@ public class BufferedOutputStream extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        if (len < 0) {
+        if (len < 0 || off < 0 || len > b.length) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        byte[] arrayForOutputByByteWithSetLength = new byte[len];
-        for (int i = 0; i < arrayForOutputByByteWithSetLength.length; i++) {
-            arrayForOutputByByteWithSetLength[i] = b[off];
-            off++;
+        int countFreeData = arrayForOutput.length - index;
+        if (countFreeData >= len) {
+            System.arraycopy(b, off, arrayForOutput, index, len);
+            index += len;
+        } else {
+            if (index!=0){
+                flush();
+            }
+            outputStream.write(b, off, len);
         }
-        outputStream.write(arrayForOutputByByteWithSetLength);
     }
 
     @Override
     public void close() throws IOException {
-        flush();
+        if (index != arrayForOutput.length && index > 0) {
+            flush();
+        }
         outputStream.close();
     }
 
     @Override
     public void flush() throws IOException {
-        if (index != arrayForOutputByByte.length && index > 0) {
-            write(arrayForOutputByByte, 0, index);
-        }
+        outputStream.write(arrayForOutput, 0, index);
+        index = 0;
     }
 }

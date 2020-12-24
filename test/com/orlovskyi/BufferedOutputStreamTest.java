@@ -1,14 +1,14 @@
 package com.orlovskyi;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
 //import java.io.BufferedOutputStream;
 //import java.io.BufferedInputStream;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BufferedOutputStreamTest {
 
@@ -19,8 +19,14 @@ class BufferedOutputStreamTest {
     FileInputStream fileInputStream;
     StringBuilder stringBuilder;
 
+    ByteArrayOutputStream byteArrayOutputStreamWithoutFile;
+    BufferedOutputStream bufferedOutputStreamWithoutFile;
+
     @BeforeEach
     void before() {
+        byteArrayOutputStreamWithoutFile = new ByteArrayOutputStream();
+        bufferedOutputStreamWithoutFile = new BufferedOutputStream(byteArrayOutputStreamWithoutFile, 3);
+
         try {
             File file = new File("testOut.txt");
             fileOutputStream = new FileOutputStream(file);
@@ -36,7 +42,81 @@ class BufferedOutputStreamTest {
     }
 
     @Test
-    void testWriteFromArrayWithoutOffANDLen() {
+    void testWriteFromArrayByByte() throws IOException {
+
+        byte[] byteTestArr = {4, 78, 24, 56, 21, 44, 22, 37};
+        for (int i = 0; i < byteTestArr.length; i++) {
+            bufferedOutputStreamWithoutFile.write(byteTestArr[i]);
+        }
+        bufferedOutputStreamWithoutFile.flush();
+        byte[] bytesBAOS = byteArrayOutputStreamWithoutFile.toByteArray();
+        assertEquals(8, bytesBAOS.length);
+        assertEquals(4, bytesBAOS[0]);
+        assertEquals(78, bytesBAOS[1]);
+        assertEquals(24, bytesBAOS[2]);
+        assertEquals(56, bytesBAOS[3]);
+        assertEquals(21, bytesBAOS[4]);
+        assertEquals(44, bytesBAOS[5]);
+        assertEquals(22, bytesBAOS[6]);
+        assertEquals(37, bytesBAOS[7]);
+    }
+
+    @Test
+    void testWriteFromArrayWithoutOffANDLen() throws IOException {
+
+        byte[] byteTestArr = {4, 78, 24, 56, 21, 44, 22, 37};
+        bufferedOutputStreamWithoutFile.write(byteTestArr);
+        //bufferedOutputStream.flush();
+        byte[] bytesBAOS = byteArrayOutputStreamWithoutFile.toByteArray();
+        assertEquals(8, bytesBAOS.length);
+        assertEquals(4, bytesBAOS[0]);
+        assertEquals(78, bytesBAOS[1]);
+        assertEquals(24, bytesBAOS[2]);
+        assertEquals(56, bytesBAOS[3]);
+        assertEquals(21, bytesBAOS[4]);
+        assertEquals(44, bytesBAOS[5]);
+        assertEquals(22, bytesBAOS[6]);
+        assertEquals(37, bytesBAOS[7]);
+    }
+
+    @Test
+    void testWriteFromArrayWithOffZeroANDLenLessArrayLength() throws IOException{
+        byte[] byteTestArr = {4, 78};
+        bufferedOutputStreamWithoutFile.write(byteTestArr, 0, byteTestArr.length);
+        bufferedOutputStreamWithoutFile.flush();
+        byte[] bytesBAOS = byteArrayOutputStreamWithoutFile.toByteArray();
+        assertEquals(2, bytesBAOS.length);
+        assertEquals(4, bytesBAOS[0]);
+        assertEquals(78, bytesBAOS[1]);
+    }
+
+    @Test
+    void testWriteFromArrayWithDifferentOffANDLen() throws IOException {
+
+        byte[] byteTestArr = {4, 78, 24, 56, 21, 44, 22, 37};
+        bufferedOutputStreamWithoutFile.write(byteTestArr, 0, 2);
+        bufferedOutputStreamWithoutFile.write(byteTestArr, 2, 2);
+        bufferedOutputStreamWithoutFile.write(byteTestArr, 4, 2);
+        bufferedOutputStreamWithoutFile.flush();
+        byte[] bytesBAOS = byteArrayOutputStreamWithoutFile.toByteArray();
+        assertEquals(6, bytesBAOS.length);
+        assertEquals(4, bytesBAOS[0]);
+        assertEquals(78, bytesBAOS[1]);
+        assertEquals(24, bytesBAOS[2]);
+        assertEquals(56, bytesBAOS[3]);
+        assertEquals(21, bytesBAOS[4]);
+        assertEquals(44, bytesBAOS[5]);
+
+//        bufferedOutputStreamWithoutFile.write(byteTestArr, 4, 4);
+//        bufferedOutputStreamWithoutFile.flush();
+//        assertEquals(8, bytesBAOS.length);
+//        assertEquals(22, bytesBAOS[6]);
+//        assertEquals(37, bytesBAOS[7]);
+
+    }
+
+    @Test
+    void testWriteFromArrayWithoutOffANDLenFILE() {
         try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
             bufferedOutputStream.write(arrayForInput);
         } catch (IOException e) {
@@ -55,7 +135,7 @@ class BufferedOutputStreamTest {
     }
 
     @Test
-    void testWriteFromArrayWithOffZeroANDLenLessArrayLength() {
+    void testWriteFromArrayWithOffZeroANDLenLessArrayLengthFILE() {
         try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
             bufferedOutputStream.write(arrayForInput, 0, arrayForInput.length - 10);
         } catch (IOException e) {
@@ -145,5 +225,10 @@ class BufferedOutputStreamTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @AfterEach
+    void after() throws IOException {
+        bufferedOutputStreamWithoutFile.close();
     }
 }
