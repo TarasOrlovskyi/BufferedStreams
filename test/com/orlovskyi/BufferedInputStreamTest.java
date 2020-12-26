@@ -1,9 +1,11 @@
 package com.orlovskyi;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.io.ByteArrayInputStream;
 //import java.io.BufferedInputStream;
 //import java.io.BufferedOutputStream;
 
@@ -11,18 +13,114 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BufferedInputStreamTest {
 
+    private ByteArrayInputStream byteArrayInputStreamWithoutFile;
+    private BufferedInputStream bufferedInputStreamWithoutFile;
+    byte[] byteArray;
+
     private StringBuilder stringBuilder;
     byte[] byteArrayWithContent;
-    ByteArrayInputStream byteArrayInputStream;
+    private ByteArrayInputStream byteArrayInputStream;
     int readResult;
     byte[] bufferedResult;
 
     @BeforeEach
-    void before() {
+    void before(){
+        String str = "Hello java! Test BufferedInputStream!";
+        byteArray = str.getBytes();
+        byteArrayInputStreamWithoutFile = new ByteArrayInputStream(byteArray);
+        bufferedInputStreamWithoutFile = new BufferedInputStream(byteArrayInputStreamWithoutFile, 10);
+
         stringBuilder = new StringBuilder();
         String content = "Hello java! I am testing BufferedStream! :)";
         byteArrayWithContent = content.getBytes();
         byteArrayInputStream = new ByteArrayInputStream(byteArrayWithContent);
+    }
+
+    @Test
+    void testReadByByte() throws IOException{
+        int count;
+        int i =0;
+        while ((count= bufferedInputStreamWithoutFile.read())!=-1){
+            assertEquals(byteArray[i], (byte) count);
+            i++;
+        }
+        assertEquals(-1, count);
+    }
+
+    @Test
+    void testReadLessBufferSize() throws IOException{
+        int count;
+        byte[] bytes = new byte[10];
+        count = bufferedInputStreamWithoutFile.read(bytes, 0, 3);
+        assertEquals(3, count);
+        bufferedInputStreamWithoutFile.read(bytes, 3, 5);
+        for (int i = 0; i < 8; i++) {
+            assertEquals(byteArray[i], bytes[i]);
+        }
+    }
+
+    @Test
+    void testReadMoreBufferSizeOneTime() throws IOException {
+        int count;
+        byte[] bytes = new byte[30];
+        bytes[0] = (byte) bufferedInputStreamWithoutFile.read();
+        count = bufferedInputStreamWithoutFile.read(bytes, 1, 3);
+        assertEquals(3, count);
+        bufferedInputStreamWithoutFile.read(bytes, 4, 10);
+        for (int i = 0; i < 14; i++) {
+            assertEquals(byteArray[i], bytes[i]);
+        }
+    }
+
+    @Test
+    void testReadMoreBufferSizeInAllArray() throws IOException {
+        int count;
+        byte[] bytes = new byte[300];
+        count = bufferedInputStreamWithoutFile.read(bytes);
+        assertEquals(37, count);
+        for (int i = 0; i < 37; i++) {
+            assertEquals(byteArray[i], bytes[i]);
+        }
+    }
+
+    @Test
+    void testReadMoreBufferSizeMoreThanOneTime() throws IOException {
+        int count;
+        byte[] bytes = new byte[30];
+        count = bufferedInputStreamWithoutFile.read(bytes, 0, 5);
+        assertEquals(5, count);
+        bufferedInputStreamWithoutFile.read(bytes, 5, 17);
+        for (int i=0; i < 22; i++){
+            assertEquals(byteArray[i], bytes[i]);
+        }
+    }
+
+    @Test
+    void testReadMoreBufferAvailable() throws IOException{
+        int count;
+        byte[] bytes = new byte[300];
+        count = bufferedInputStreamWithoutFile.read(bytes, 0, 100);
+        assertEquals(37, count);
+        for (int i = 0; i < 37; i++) {
+            assertEquals(byteArray[i], bytes[i]);
+        }
+    }
+
+    @Test
+    void testReadMoreArrayLength(){
+        byte[] bytes = new byte[10];
+        assertThrows(IndexOutOfBoundsException.class, ()-> {
+            bufferedInputStreamWithoutFile.read(bytes, 0, 100);});
+    }
+
+    @Test
+    void testReadBufferWhenBufferIsEmpty() throws IOException{
+        byte[] bytes = {};
+        int count;
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(byteArrayInputStream);
+        count = bufferedInputStream.read();
+        assertEquals(-1, count);
     }
 
     //**** test method read() #1 ****
@@ -381,5 +479,10 @@ class BufferedInputStreamTest {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
+    }
+
+    @AfterEach
+    void after() throws IOException{
+        bufferedInputStreamWithoutFile.close();
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.io.ByteArrayInputStream;
 //import java.io.BufferedOutputStream;
 //import java.io.BufferedInputStream;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +44,6 @@ class BufferedOutputStreamTest {
 
     @Test
     void testWriteFromArrayByByte() throws IOException {
-
         byte[] byteTestArr = {4, 78, 24, 56, 21, 44, 22, 37};
         for (int i = 0; i < byteTestArr.length; i++) {
             bufferedOutputStreamWithoutFile.write(byteTestArr[i]);
